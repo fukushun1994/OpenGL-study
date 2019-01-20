@@ -4,8 +4,10 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <memory>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include "Shape.h"
 
 using namespace std;
 
@@ -154,6 +156,14 @@ GLuint loadProgram(const char *vert, const char *frag) {
 	return vstat && fstat ? createProgram(vsrc.data(), fsrc.data()) : 0;
 }
 
+// 矩形の頂点の位置
+constexpr Object::Vertex rectangleVertex[] = {
+	{ -0.5f, -0.5f },
+	{  0.5f, -0.5f },
+	{  0.5f,  0.5f },
+	{ -0.5f,  0.5f }
+};
+
 int main() {
 	// GLFWを初期化する
 	if (glfwInit() == GL_FALSE) {
@@ -193,12 +203,15 @@ int main() {
 	// 垂直同期のタイミングを待つ
 	glfwSwapInterval(1);
 
+	// 背景色を指定する
+	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
 	// プログラムオブジェクトを作成する
 	GLuint program(loadProgram("point.vert", "point.frag"));
 
-	// 背景色を指定する
-	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	// 図形データを作成する
+	unique_ptr<const Shape> shape(new Shape(2, 4, rectangleVertex));
+
 
 	// ウィンドウが開いている間繰り返す
 	while (glfwWindowShouldClose(window) == GL_FALSE) {
@@ -208,9 +221,8 @@ int main() {
 		// シェーダプログラムの使用開始
 		glUseProgram(program);
 
-		//
-		// ここで描画処理を行う
-		//
+		// 図形を描画する
+		shape->draw();
 
 		// カラーバッファを入れ替える
 		glfwSwapBuffers(window);
