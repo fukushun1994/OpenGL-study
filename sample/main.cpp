@@ -8,6 +8,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "Shape.h"
+#include "Window.h"
 
 using namespace std;
 
@@ -181,57 +182,45 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	
 	// ウィンドウを作成する
-	GLFWwindow *const window(glfwCreateWindow(640, 480, "Hello!", NULL, NULL));
-	if (window == NULL) {
-		// ウィンドウが作成できなかった
-		cerr << "Can't create GLFW window." << endl;
-		return 1;
-	}
-
-	// 作成したウィンドウを OpenGL の処理対象にする
-	glfwMakeContextCurrent(window);
-
-	// GLEW を初期化する
-	glewExperimental = GL_TRUE;
-	if (glewInit() != GLEW_OK) {
-		// GLEW の初期化に失敗した
-		cerr << "Can't initialize GLEW" << endl;
-		return 1;
-	}
-
-	// 垂直同期のタイミングを待つ
-	glfwSwapInterval(1);
+	Window window;
 
 	// 背景色を指定する
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
+
 	// プログラムオブジェクトを作成する
 	GLuint program(loadProgram("point.vert", "point.frag"));
+
+	// uniform変数の場所を取得する
+	const GLint sizeLoc(glGetUniformLocation(program, "size"));
+	const GLint scaleLoc(glGetUniformLocation(program, "scale"));
+	const GLint locationLoc(glGetUniformLocation(program, "location"));
 
 	// 図形データを作成する
 	unique_ptr<const Shape> shape(new Shape(2, 4, rectangleVertex));
 
 
 	// ウィンドウが開いている間繰り返す
-	while (glfwWindowShouldClose(window) == GL_FALSE) {
+	while (window.shouldClose() == GL_FALSE) {
 		// ウィンドウを消去する
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// シェーダプログラムの使用開始
 		glUseProgram(program);
 
+		// uniform変数に値を設定する
+		glUniform2fv(sizeLoc, 1, window.getSize());
+		glUniform1f(scaleLoc, window.getScale());
+		glUniform2fv(locationLoc, 1, window.getLocation());
+
 		// 図形を描画する
 		shape->draw();
 
-		// カラーバッファを入れ替える
-		glfwSwapBuffers(window);
-
-		// イベントを取り出す
-		glfwWaitEvents();
+		// カラーバッファを入れ替えてイベントを取り出す
+		window.swapBuffers();
 	}
-
-	//
 
 	return 0;
 }
