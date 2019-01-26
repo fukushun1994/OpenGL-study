@@ -10,7 +10,7 @@ public:
 	// コンストラクタ
 	Window(int width = 640, int height = 480, const char *title = "Hello!")
 		: window(glfwCreateWindow(width, height, title, NULL, NULL))
-		, scale(100.0f), location{0, 0}, arrowKeyCount(0)
+		, scale(100.0f), location{0, 0}, arrowKeyCount(0), wheelRotation(0.0)
 	{
 		if (window == NULL) {
 			// ウィンドウが作成できなかった
@@ -125,7 +125,12 @@ public:
 		if (instance != NULL) {
 			// ワールド座標系に対するデバイス座標系の拡大率を更新する
 			instance->scale += static_cast<GLfloat>(y);
+			instance->wheelRotation += y;
 		}
+	}
+
+	double getWheelRotation() {
+		return wheelRotation;
 	}
 
 	// キーボード操作時の処理
@@ -161,6 +166,9 @@ private:
 
 	// 矢印キーの押されている数
 	int arrowKeyCount;
+
+	// ホイールの回転量
+	double wheelRotation;
 
 	static Window *const getInstance(GLFWwindow *const window) {
 		Window *const instance(static_cast<Window *>(glfwGetWindowUserPointer(window)));
