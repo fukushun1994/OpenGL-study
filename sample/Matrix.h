@@ -194,7 +194,7 @@ public:
 		rv.matrix[8] = rz / r;
 
 		// s²‚ğ³‹K‰»‚µ‚Ä”z—ñ•Ï”‚ÉŠi”[
-		const GLfloat s(s2);
+		const GLfloat s(sqrt(s2));
 		rv.matrix[1] = sx / s;
 		rv.matrix[5] = sy / s;
 		rv.matrix[9] = sz / s;
@@ -206,6 +206,72 @@ public:
 		rv.matrix[10] = tz / t;
 
 		return rv * tv;
+	}
+
+	// ’¼s“Š‰e•ÏŠ·s—ñ‚ğì¬‚·‚é
+	static Matrix orthogonal(
+		GLfloat left, GLfloat right,
+		GLfloat bottom, GLfloat top,
+		GLfloat zNear, GLfloat zFar) {
+
+		Matrix t;
+		const GLfloat dx(right - left);
+		const GLfloat dy(top - bottom);
+		const GLfloat dz(zFar - zNear);
+
+		if (dx != 0.0f && dy != 0.0f && dz != 0.0f) {
+			t.loadIdentity();
+			t.matrix[0] = 2.0f / dx;
+			t.matrix[5] = 2.0f / dy;
+			t.matrix[10] = -2.0f / dz;
+			t.matrix[12] = -(right + left) / dx;
+			t.matrix[13] = -(top + bottom) / dy;
+			t.matrix[14] = -(zFar + zNear) / dz;
+		}
+		return t;
+	}
+
+	// “§‹“Š‰e•ÏŠ·s—ñ‚ğì¬‚·‚é
+	static Matrix frustum(
+		GLfloat left, GLfloat right,
+		GLfloat bottom, GLfloat top,
+		GLfloat zNear, GLfloat zFar) {
+
+		Matrix t;
+		const GLfloat dx(right - left);
+		const GLfloat dy(top - bottom);
+		const GLfloat dz(zFar - zNear);
+
+		if (dx != 0.0f && dy != 0.0f && dz != 0.0f) {
+			t.loadIdentity();
+			t.matrix[0] = 2.0f * zNear / dx;
+			t.matrix[5] = 2.0f * zNear / dy;
+			t.matrix[8] = (right + left) / dx;
+			t.matrix[9] = (top + bottom) / dy;
+			t.matrix[10] = -(zFar + zNear) / dz;
+			t.matrix[11] = -1.0f;
+			t.matrix[14] = -2.0f * zFar * zNear / dz;
+			t.matrix[15] = 0.0f;
+		}
+		return t;
+	}
+
+	// ‰æŠp‚ğw’è‚µ‚Ä“§‹“Š‰e•ÏŠ·s—ñ‚ğì¬‚·‚é
+	static Matrix perspective(GLfloat fovy, GLfloat aspect, GLfloat zNear, GLfloat zFar) {
+		Matrix t;
+		const GLfloat dz(zFar - zNear);
+
+		if (dz != 0.0f) {
+			t.loadIdentity();
+			t.matrix[5] = 1.0f / tan(fovy * 0.5f);
+			t.matrix[0] = t.matrix[5] / aspect;
+			t.matrix[10] = -(zFar + zNear) / dz;
+			t.matrix[11] = -1.0f;
+			t.matrix[14] = -2.0f * zFar * zNear / dz;
+			t.matrix[15] = 0.0f;
+		}
+
+		return t;
 	}
 
 private:
