@@ -64,12 +64,7 @@ public:
 		glfwSwapBuffers(window);
 
 		// イベントを取り出す
-		if (arrowKeyCount == 0) {
-			glfwWaitEvents();
-		}
-		else {
-			glfwPollEvents();
-		}
+		glfwPollEvents();
 
 		if (glfwGetKey(window, GLFW_KEY_LEFT) != GLFW_RELEASE) {
 			location[0] -= 2.0f / size[0];

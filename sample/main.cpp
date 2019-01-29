@@ -327,6 +327,15 @@ int main() {
 	// 背景色を指定する
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
+	// 背面カリングを有効にする
+	glFrontFace(GL_CCW);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+
+	// デプスバッファを有効にする
+	glClearDepth(1.0);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_DEPTH_TEST);
 
 	// プログラムオブジェクトを作成する
 	GLuint program(loadProgram("point.vert", "point.frag"));
@@ -338,10 +347,13 @@ int main() {
 	// 図形データを作成する
 	unique_ptr<const Shape> shape(new SolidShape(3, 36, solidCubeVertex));
 
+	// タイマーを0にセット
+	glfwSetTime(0.0);
+
 	// ウィンドウが開いている間繰り返す
 	while (window.shouldClose() == GL_FALSE) {
 		// ウィンドウを消去する
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// シェーダプログラムの使用開始
 		glUseProgram(program);
@@ -355,7 +367,8 @@ int main() {
 
 		// モデル変換行列を求める
 		const GLfloat *const location(window.getLocation());
-		const Matrix model(Matrix::translate(location[0], location[1], 0.0f));
+		const Matrix r(Matrix::rotate(static_cast<GLfloat>(glfwGetTime()), 0.0f, 1.0f, 0.0f));
+		const Matrix model(Matrix::translate(location[0], location[1], 0.0f) * r);
 
 		// ビュー変換行列を求める
 		const Matrix view(Matrix::lookat(3.0f, 4.0f, 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f));
@@ -368,6 +381,12 @@ int main() {
 		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, projection.data());
 
 		// 図形を描画する
+		shape->draw();
+
+
+		// 二つ目のモデルビュー変換行列を求める
+		const Matrix modelview1(modelview * Matrix::translate(0.0f, 0.0f, 3.0f));
+		glUniformMatrix4fv(modelviewLoc, 1, GL_FALSE, modelview1.data());
 		shape->draw();
 
 		// カラーバッファを入れ替えてイベントを取り出す
